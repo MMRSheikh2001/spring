@@ -17,8 +17,8 @@ public class PoliceStationService {
         return policeStationRepository.findAll();
     }
 
-    public void saveOrUpdate(PoliceStation p) {
-        policeStationRepository.save(p);
+    public PoliceStation saveOrUpdate(PoliceStation p) {
+     return    policeStationRepository.save(p);
     }
 
     public Optional<PoliceStation> getById(Long id) {
