@@ -3,6 +3,8 @@ package com.home.homeWork.controller;
 import com.home.homeWork.entity.PoliceStation;
 import com.home.homeWork.service.PoliceStationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,8 +16,9 @@ public class PoliceStationController {
     private PoliceStationService policeStationService;
 
     @PostMapping
-    public void save(@RequestBody PoliceStation p) {
-        policeStationService.saveOrUpdate(p);
+    public ResponseEntity<PoliceStation> save(@RequestBody PoliceStation p) {
+        PoliceStation savedPoliceStation = policeStationService.saveOrUpdate(p);
+        return new ResponseEntity(savedPoliceStation, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -23,5 +26,26 @@ public class PoliceStationController {
         return policeStationService.getAll();
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<PoliceStation> getById(@PathVariable Long id) {
+        PoliceStation policeStation = policeStationService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Police Station Not Found"));
 
+        return ResponseEntity.ok(policeStation);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteById(@PathVariable Long id) {
+        policeStationService.delete(id);
+        return ResponseEntity.ok("Police Station Deleted");
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<PoliceStation> update(@PathVariable Long id,
+                                                @RequestBody PoliceStation policeStation) {
+        policeStation.setId(id);
+        PoliceStation updatedPoliceStation = policeStationService.saveOrUpdate(policeStation);
+
+        return ResponseEntity.ok(updatedPoliceStation);
+    }
 }

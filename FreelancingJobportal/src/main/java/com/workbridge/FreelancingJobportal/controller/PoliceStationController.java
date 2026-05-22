@@ -34,4 +34,19 @@ public class PoliceStationController {
 
         return ResponseEntity.ok(policeStation);
     }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteById(@PathVariable Long id) {
+        policeStationService.delete(id);
+        return ResponseEntity.ok("Police Station Deleted");
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<PoliceStation> update(@PathVariable Long id,
+                                                @RequestBody PoliceStation policeStation) {
+        policeStation.setId(id);
+        PoliceStation updatedPoliceStation = policeStationService.saveOrUpdate(policeStation);
+
+        return ResponseEntity.ok(updatedPoliceStation);
+    }
 }
