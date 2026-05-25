@@ -2,6 +2,7 @@ package com.home.homeWork.service;
 
 
 
+import com.home.homeWork.dto.DivisionDTO;
 import com.home.homeWork.entity.Division;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,6 @@ public interface DivisionService {
 
     void delete(Integer id);
 
-    List<Division> getDivisionByCountryId(Integer countryId);
-    List<Division> getDivisionByCountryName(String countryName);
+    List<DivisionDTO> getDivisionByCountryId(Integer countryId);
+    List<DivisionDTO> getDivisionByCountryName(String countryName);
 }

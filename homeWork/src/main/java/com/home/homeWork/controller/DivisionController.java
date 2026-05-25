@@ -1,5 +1,6 @@
 package com.home.homeWork.controller;
 
+import com.home.homeWork.dto.DivisionDTO;
 import com.home.homeWork.entity.Division;
 import com.home.homeWork.service.DivisionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,15 +29,15 @@ public class DivisionController {
 
     //Find By Country Id
     @GetMapping("country/{id}")
-    public List<Division> getByCountryId(@PathVariable Integer id) {
+    public List<DivisionDTO> getByCountryId(@PathVariable Integer id) {
         return divisionService.getDivisionByCountryId(id);
     }
 
     //Find By Country Name
     @GetMapping("country/name/{name}")
-    public List<Division> getByCountryName(@PathVariable String name) {
-        List<Division> lIst = divisionService.getDivisionByCountryName(name);
-        return lIst;
+    public List<DivisionDTO> getByCountryName(@PathVariable String name) {
+        return divisionService.getDivisionByCountryName(name);
+        
     }
 
 
