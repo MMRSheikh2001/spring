@@ -50,18 +50,18 @@ public class DivisionServiceImpl implements DivisionService {
 
     @Override
     public List<DivisionDTO> getDivisionByCountryId(Integer countryId) {
-        List<Division> list= divisionRepository.findByCountryId(countryId);
+        List<Division> list = divisionRepository.findByCountryId(countryId);
         return list.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<DivisionDTO> getDivisionByCountryName(String countryName) {
-        List<Division> list= divisionRepository.findByCountryName(countryName);
+        List<Division> list = divisionRepository.findByCountryName(countryName);
         return list.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
 
-    private DivisionDTO convertToDTO(Division division){
+    private DivisionDTO convertToDTO(Division division) {
         return new DivisionDTO(
                 division.getId(),
                 division.getName(),
