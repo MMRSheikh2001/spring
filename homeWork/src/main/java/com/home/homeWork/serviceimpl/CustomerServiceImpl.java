@@ -8,10 +8,17 @@ import com.home.homeWork.service.CustomerService;
 import com.home.homeWork.util.EmailService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -20,12 +27,23 @@ public class CustomerServiceImpl implements CustomerService {
     @Autowired
     private UserRepository userRepository;
 
+    @Value("F:/Documents/GitHub/spring/resources/")
+    private String uploadDir;
+
     @Autowired
     private EmailService emailService;
 
 
     @Override
-    public Customer save(Customer c) {
+    public Customer save(Customer c, MultipartFile file) {
+
+        if (file != null && !file.isEmpty()) {
+            String fileName = saveImageForCustomer(file, c);
+            c.setImage(fileName);
+
+        }
+
+
         User u = new User();
         u.setName(c.getName());
         u.setEmail(c.getEmail());
@@ -97,6 +115,31 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
 
+    }
+
+
+    //Image Saving Method
+    public String saveImageForCustomer(MultipartFile file, Customer c) {
+        Path uploadPath = Paths.get(uploadDir + "customer");
+        if (!Files.exists(uploadPath)) {
+            try {
+                Files.createDirectory(uploadPath);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        String customerName = c.getName();
+        String fileName = customerName.trim().replaceAll("\\s+", "_");
+
+        String savedFileName = fileName + "_" + UUID.randomUUID().toString();
+        Path filePath = uploadPath.resolve(savedFileName);
+        try {
+            Files.copy(file.getInputStream(), filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return savedFileName;
     }
 
 
