@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Service
 public interface CustomerService {
-    Customer save(Customer c, MultipartFile filr);
+    Customer save(Customer c, MultipartFile file);
 
     List<Customer> findAll();
     Optional<Customer> getById(Long id);
