@@ -25,7 +25,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         String roleAuthority="ROLE_"+user.getRole().name();
 
-        if(!user.isEnabled()){
+        if(!user.getIsActive()){
             throw new DisabledException(
                     "You account is inactive.Contact Admin"
             );

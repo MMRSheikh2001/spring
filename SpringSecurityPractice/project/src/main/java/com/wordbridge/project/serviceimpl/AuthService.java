@@ -1,6 +1,8 @@
 package com.wordbridge.project.serviceimpl;
 
+import com.wordbridge.project.dto.requestdto.ForgotPasswordRequestDTO;
 import com.wordbridge.project.dto.requestdto.LoginRequestDTO;
+import com.wordbridge.project.dto.requestdto.ResetPasswordRequestDTO;
 import com.wordbridge.project.dto.responsedto.LoginResponseDTO;
 import com.wordbridge.project.entity.User;
 import com.wordbridge.project.enums.UserRole;
@@ -8,10 +10,13 @@ import com.wordbridge.project.repository.CompanyProfileRepository;
 import com.wordbridge.project.repository.UserProfileRepository;
 import com.wordbridge.project.repository.UserRepository;
 import com.wordbridge.project.security.JwtUtil;
+import com.wordbridge.project.util.EmailService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,6 +27,8 @@ public class AuthService {
     private final UserProfileRepository userProfileRepository;
     private final CompanyProfileRepository companyProfileRepository;
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
+    private final PasswordEncoder encoder;
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
         try {
@@ -68,6 +75,73 @@ public class AuthService {
         response.setImage(image);
 
         return response;
+
+    }
+
+    //Send/Resend Verification Mail
+    public void sendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with" + email));
+
+        if (user.getIsActive()) {
+            throw new RuntimeException("Account is already Verified");
+        }
+        String token = jwtUtil.generateVerificationToken(user.getEmail());
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), "User", token);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send Verification Email   " + e.getMessage());
+        }
+
+
+    }
+
+    //Check and confirm Verification Link
+    public void verifyEmail(String token){
+        if(!jwtUtil.isValidForPurpose(token,"EMAIL_VERIFICATION")){
+            throw new RuntimeException("Invalid token");
+
+
+        }
+        String email=jwtUtil.extractEmail(token);
+        User user=userRepository.findByEmail(email)
+                .orElseThrow(()->new RuntimeException("No user found"));
+        if (user.getIsActive()) {
+            throw new RuntimeException("Account is already Verified");
+        }
+        user.setIsActive(true);
+        userRepository.save(user);
+    }
+
+    //Forgot Password----Send Reset Link
+    public void forgotPassword(ForgotPasswordRequestDTO dto) {
+
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new RuntimeException("User Not found by" + dto.getEmail()));
+        String token = jwtUtil.generatePasswordResetToken(user.getEmail());
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail(), "User", token);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send Reset email    " + e.getMessage());
+        }
+
+
+    }
+
+    //Reset Password Using Token
+    public void resetPasswordUsingToken(ResetPasswordRequestDTO dto) {
+        if (!jwtUtil.isValidForPurpose(dto.getToken(), "PASSWORD_RESET")) {
+            throw new RuntimeException("Invali/Expired Link");
+        }
+        if (dto.getNewPassword() == null || dto.getNewPassword().length() < 4) {
+            throw new RuntimeException("Give a more Complex Password of atleast 4 characters ");
+        }
+
+        String email = jwtUtil.extractEmail(dto.getToken());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User Not found"));
+        user.setPassword(encoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
 
     }
 

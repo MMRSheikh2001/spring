@@ -13,6 +13,7 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -26,6 +27,7 @@ public class UserServiceImpl implements UserService {
 
 
     private final EmailService emailService;
+    private final AuthService authService;
 
 
     private final UserMapper userMapper;
@@ -57,14 +59,15 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.toEntity(dto);
 
         user.setPassword(encoder.encode(dto.getPassword()));//Encoding Password
-        user.setIsVerified(false);
+        user.setIsVerified(true);
 
-        user.setIsActive(true);
+        user.setIsActive(false);
 
         user.setIsSuspended(false);
 
         User savedUser = userRepository.save(user);
         sendMailToUser(savedUser);
+        authService.sendVerificationEmail(savedUser.getEmail());
 
         return userMapper.toDTO(savedUser);
     }
@@ -96,6 +99,7 @@ public class UserServiceImpl implements UserService {
 
         User updatedUser = userRepository.save(user);
         sendMailToUser(updatedUser);
+
         return userMapper.toDTO(updatedUser);
     }
 

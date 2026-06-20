@@ -17,6 +17,12 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private Long expiration;
 
+    @Value(("${jwt.verification-expiration}"))
+    private String verificationExpiration;
+
+    @Value(("${jwt.reset-expiration}"))
+    private String resetExpiration;
+
     //Generate Token from email
     public String generateToken(String email, String role) {
         return Jwts.builder()
@@ -27,6 +33,44 @@ public class JwtUtil {
                 .signWith(getKey())
                 .compact();
     }
+
+
+    //Generate Email Verification token small time token
+    public String generateVerificationToken(String email) {
+        return Jwts.builder().subject(email).claim("purpose", "EMAIL_VERIFICATION")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + verificationExpiration))
+                .signWith(getKey())
+                .compact();
+    }
+
+    //Generate Password Reset Token
+    public String generatePasswordResetToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .claim("purpose", "PASSWORD_RESET")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + resetExpiration))
+                .signWith(getKey())
+                .compact();
+    }
+
+
+    //Extract Purpose from token
+    public String extractPurpose(String token) {
+        return (String) getClaims(token).get("purpose");
+    }
+
+    //Is Token Valid For Expected Purpose?
+    public boolean isValidForPurpose(String token, String expectedPurpose) {
+        try {
+            Claims claims = getClaims(token);
+            return expectedPurpose.equals(claims.get("purpose"));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
 
     //Extract email from token
     public String extractEmail(String token) {
